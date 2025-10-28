@@ -186,7 +186,7 @@
                 let m = await getFile(`/system/modules/${name}`);
                 if (!m) {
                     try {
-                        const res = await fetch(`/desktop/modules/${name}`);
+                        const res = await fetch(`desktop/modules/${name}`);
                         if (!res.ok) throw new Error("[DESKTOP] Module fetch failed");
                         m = await res.text();
                         await writeFile(`/system/modules/${name}`, m);
@@ -593,7 +593,7 @@
 
         for (const wlp of list) {
             try {
-                const imgRes = await fetch(`/desktop/img/wallpapers/${wlp}`);
+                const imgRes = await fetch(`desktop/img/wallpapers/${wlp}`);
                 const data = await imgRes.arrayBuffer();
                 await writeFile(`/home/wallpapers/${wlp}`, data);
             } catch {
@@ -725,7 +725,7 @@
                     for (const app of appList) {
                         let res;
                         try {
-                            res = await fetch(`/desktop/app/${app}`);
+                            res = await fetch(`desktop/app/${app}`);
                         } catch {
                             warn(`[DESKTOP] Failed to install app '${app}'.`);
                         }
