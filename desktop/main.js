@@ -256,7 +256,7 @@
 
         
         log("[DESKTOP] Application appened to desktop");
-        makeDraggableWindow(window, drag)
+        makeDraggableWindow(appWindow, drag)
         log("[DESKTOP] Window dragging hooked to window");
         await new Promise((r) => setTimeout(r, 50));
         appWindow.classList.add("windowLoaded");
