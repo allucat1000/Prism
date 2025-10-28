@@ -279,7 +279,6 @@
                     case "TextButton":{
                         const text = document.createElement("p");
                         const id = parseFloat(data.id);
-                        console.log(data);
                         const callback = data.callback;
                         const textcontent = data.text;
                         if (!id) {
