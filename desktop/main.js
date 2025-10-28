@@ -259,10 +259,10 @@
         makeDraggableWindow(window, drag)
         log("[DESKTOP] Window dragging hooked to window");
         await new Promise((r) => setTimeout(r, 50));
-        window.classList.add("windowLoaded");
+        appWindow.classList.add("windowLoaded");
         const id = crypto.randomUUID()
-        processList[id] = { element: window, path, globalID }
-        return { element: window, id: id, path, globalID };
+        processList[id] = { element: appWindow, path, globalID }
+        return { element: appWindow, id: id, path, globalID };
     }
 
     async function killProc(id) {
