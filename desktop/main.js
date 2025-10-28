@@ -59,14 +59,14 @@
     }
 
     async function createAppWindow(path, files) {
-        const window = document.createElement("div");
+        const appWindow = document.createElement("div");
         const drag = document.createElement("div");
         drag.classList.add("internalWindowTopbar");
         window.classList.add("window");
         const app = document.createElement("iframe");
         app.classList.add("internalWindow");
-        window.append(drag)
-        window.append(app);
+        appWindow.append(drag)
+        appWindow.append(app);
         let manifest;
         let globalID;
         if (Object.keys(files).includes("manifest.json")) {
@@ -139,7 +139,7 @@
 </html>
         `;
         log("[DESKTOP] Application srcdoc set");
-        desktop.append(window);
+        desktop.append(appWindow);
         app.onload = () => {
             const win = app.contentWindow;
 
