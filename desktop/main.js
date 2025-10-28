@@ -271,7 +271,7 @@
                         title.textContent = data;
                         title.classList.add("windowTitle");
                         title.style = "margin: 0.9em 1em; color: white; position: absolute;";
-                        title.style.left = pos[0]
+                        title.style.left = parsePos(pos[0])
                         drag.append(title);
                         break;
                     }
