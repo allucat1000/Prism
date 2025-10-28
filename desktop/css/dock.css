@@ -1,0 +1,47 @@
+#timeWidget {
+    width: 5em;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.timeWidgetText {
+    color: #ffffffed;
+    margin: 0.1em 0;
+}
+
+#processList {
+    flex-grow: 1;
+    height: 50px;
+    padding: 0;
+    padding-right: 1em;
+
+}
+
+#dock {
+    position: absolute;
+    bottom: 1em;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 4em);
+    border-radius: 1em;
+    background-color: rgb(65 78 80 / 40%);
+    backdrop-filter: blur(5px);
+    padding: 1em;
+    height: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 1;
+    transition: opacity 1s ease-in-out, bottom 1s ease-in-out;
+    border-style: solid;
+    border-color: rgb(89 89 89 / 30%);
+    z-index: 999999;
+}
+
+.dockAnim {
+    opacity: 0 !important;
+    bottom: -2.5em !important;
+}
