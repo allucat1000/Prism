@@ -62,7 +62,7 @@
         const appWindow = document.createElement("div");
         const drag = document.createElement("div");
         drag.classList.add("internalWindowTopbar");
-        window.classList.add("window");
+        appWindow.classList.add("window");
         const app = document.createElement("iframe");
         app.classList.add("internalWindow");
         appWindow.append(drag)
