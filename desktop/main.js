@@ -200,6 +200,8 @@
 
             Object.freeze(loadModule);
 
+            win.module = loadModule
+
             const Rotur = Object.freeze({
                 login: async() => {
                     return new Promise( async(resolve, reject) => {
@@ -248,7 +250,7 @@
                 }
             });
 
-            win.module = module
+            win.rotur = Rotur
             log("[DESKTOP] System APIs injected");
         };
 
