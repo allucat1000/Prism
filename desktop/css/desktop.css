@@ -30,7 +30,8 @@
     height: 500px;
     left: 1em;
     top: 1em;
-    padding: 0;
+    padding: 0.5em;
+    padding-bottom: 0;
     border-radius: 1em;
     background-color: rgb(47 47 47 / 60%);
     border-style: solid;
@@ -39,6 +40,7 @@
     user-select: none;
     opacity: 0;
     transition: opacity 0.1s ease-in-out;
+    overflow: hidden;
 }
 
 .windowLoaded {
