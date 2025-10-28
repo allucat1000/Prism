@@ -270,7 +270,7 @@
                         const title = appWindow.querySelector("windowTitle") || document.createElement("p");
                         title.textContent = data;
                         title.classList.add("windowTitle");
-                        title.style = "margin: 0.5em;";
+                        title.style = "margin: 1em; color: white;";
                         drag.append(title);
                         break;
                     }
