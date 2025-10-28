@@ -203,7 +203,7 @@
             win.module = loadModule
 
             const Rotur = Object.freeze({
-                login: async() => {
+                openLogin: async() => {
                     return new Promise( async(resolve, reject) => {
                         try {
                             await new Promise(r => setTimeout(r, 1000));
