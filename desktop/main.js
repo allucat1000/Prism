@@ -140,76 +140,138 @@
         `;
         log("[DESKTOP] Application srcdoc set");
         desktop.append(appWindow);
-            const win = app.contentWindow;
+        const id = crypto.randomUUID()
+        const win = app.contentWindow;
 
-            app.contentWindow.eval("const top = null;");
+        app.contentWindow.eval("const top = null;");
 
-            ["parent", "opener", "frameElement"].forEach(name => {
-                try {
-                    Object.defineProperty(win, name, {
-                        configurable: false,
-                        enumerable: false,
-                        get() { return null; }
-                    });
-                } catch (e) {
-                    warn(`[DESKTOP] Could not override ${name}:`, e);
-                }
-            });
+        ["parent", "opener", "frameElement"].forEach(name => {
+            try {
+                Object.defineProperty(win, name, {
+                    configurable: false,
+                    enumerable: false,
+                    get() { return null; }
+                });
+            } catch (e) {
+                warn(`[DESKTOP] Could not override ${name}:`, e);
+            }
+        });
 
-            const FS = Object.freeze({
-                writeFile: async (path, content, metadata = {}) => {
-                    await writeFile(path, content, ["user"], metadata);
-                },
-                readFile: async (path) => {
-                    return await getFile(path);
-                },
-                getFileData: async (path) => {
-                    let data = await getFileData(path);
-                    delete data?.content;
-                    return data;
-                },
-                delFile: async (path) => {
-                    await deleteFile(path);
-                },
-                mkDir: async (path, metadata = {}) => {
-                    await makeDir(path, ["user"], metadata);
-                },
-                lsDir: async (path) => {
-                    await listDir(path);
-                }
-            });
+        const FS = Object.freeze({
+            writeFile: async (path, content, metadata = {}) => {
+                await writeFile(path, content, ["user"], metadata);
+            },
+            readFile: async (path) => {
+                return await getFile(path);
+            },
+            getFileData: async (path) => {
+                let data = await getFileData(path);
+                delete data?.content;
+                return data;
+            },
+            delFile: async (path) => {
+                await deleteFile(path);
+            },
+            mkDir: async (path, metadata = {}) => {
+                await makeDir(path, ["user"], metadata);
+            },
+            lsDir: async (path) => {
+                await listDir(path);
+            }
+        });
 
-            win.FileSystem = FS;
+        win.FileSystem = FS;
 
-            const loadModule = async (name) => {
-                let m = await getFile(`/system/modules/${name}.js`);
-                if (!m || DEBUG) {
-                    try {
-                        const res = await fetch(`desktop/modules/${name}.js`);
-                        if (!res.ok) throw new Error("[DESKTOP] Module fetch failed");
-                        m = await res.text();
-                        await writeFile(`/system/modules/${name}.js`, m);
-                    } catch (err) {
-                        error(`[DESKTOP] Unable to find module under name '${name}': ${err.message}`);
+        const App = Object.freeze({
+            execApp: async(path) => {
+                await execApp(path);
+            },
+            
+            close: async() => {
+                await killProc(id);
+            },
+
+            storage: {
+                read: async (path) => {
+                    const fullPath = `/system/applicationstorage/${id}${path}`;
+                    
+                    const existsFile = await exists(fullPath);
+                    if (!existsFile) {
+                        console.warn(`[DESKTOP] ApplicationStorage: File not found: ${fullPath}`);
                         return null;
                     }
+
+                    const data = await getFile(fullPath);
+                    return data;
+                },
+
+                write: async (path, content) => {
+                    const fullPath = `/system/applicationstorage/${id}${path}`;
+
+                    await writeFile(fullPath, content, ["user"]);
                 }
-                return eval("(async() => { " + m + " })()");
-            };
+            }
+        });
 
-            Object.freeze(loadModule);
+        win.Application = App;
 
-            win.module = loadModule
+        const loadModule = async (name) => {
+            let m = await getFile(`/system/modules/${name}.js`);
+            if (!m || DEBUG) {
+                try {
+                    const res = await fetch(`desktop/modules/${name}.js`);
+                    if (!res.ok) throw new Error("[DESKTOP] Module fetch failed");
+                    m = await res.text();
+                    await writeFile(`/system/modules/${name}.js`, m);
+                } catch (err) {
+                    error(`[DESKTOP] Unable to find module under name '${name}': ${err.message}`);
+                    return null;
+                }
+            }
+            return eval("(async() => { " + m + " })()");
+        };
 
-            log("[DESKTOP] System APIs injected");
-        
+        Object.freeze(loadModule);
+
+        win.module = loadModule
+
+        function parsePos(pos) {
+            if (typeof pos === "number") {
+                return pos + "px";
+            } else {
+                return pos;
+            }
+        }
+        const Topbar = Object.freeze({
+            add: (name, pos) => {
+                switch (name) {
+                    case "Close":{
+                        const closeButton = document.createElement("button");
+                        closeButton.classList.add("closeButton");
+                        closeButton.style = "position: absolute; background-color: transparent; width: 32px; height: 32px; border-style: none; color: white; font-size: large; z-index: 99; margin: 0.5em; cursor: pointer;";
+                        closeButton.onclick = () => killProc(id);
+                        closeButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+                        closeButton.style.left = parsePos(pos[0]);
+                        closeButton.style.top = parsePos(pos[1]);
+                        appWindow.append(closeButton)
+                        break;
+                    }
+                    default:
+                        warn(`[DESKTOP] Topbar: Unknown element to add '${name}'`);
+                        break;
+                }
+            }
+        })
+
+        win.Topbar = Topbar;
+
+        log("[DESKTOP] System APIs injected");
         
         log("[DESKTOP] Application appened to desktop");
         makeDraggableWindow(appWindow, drag)
         log("[DESKTOP] Window dragging hooked to window");
         await new Promise((r) => setTimeout(r, 50));
         appWindow.classList.add("windowLoaded");
-        const id = crypto.randomUUID()
         processList[id] = { element: appWindow, path, globalID }
         return { element: appWindow, id: id, path, globalID };
     }
@@ -219,6 +281,7 @@
             warn(`[DESKTOP] Unable to find process with id '${id}'`);
             return;
         }
+        log(`[DESKTOP] Killed process with id '${id}'`)
         processList[id].element.remove();
         delete processList[id];
     }
