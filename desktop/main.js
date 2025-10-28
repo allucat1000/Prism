@@ -140,7 +140,6 @@
         `;
         log("[DESKTOP] Application srcdoc set");
         desktop.append(appWindow);
-        app.onload = () => {
             const win = app.contentWindow;
 
             app.contentWindow.eval("const top = null;");
@@ -183,77 +182,27 @@
             win.FileSystem = FS;
 
             const loadModule = async (name) => {
-                let m = await getFile(`/system/modules/${name}`);
-                if (!m) {
+                let m = await getFile(`/system/modules/${name}.js`);
+                if (!m || DEBUG) {
                     try {
-                        const res = await fetch(`desktop/modules/${name}`);
+                        const res = await fetch(`desktop/modules/${name}.js`);
                         if (!res.ok) throw new Error("[DESKTOP] Module fetch failed");
                         m = await res.text();
-                        await writeFile(`/system/modules/${name}`, m);
+                        await writeFile(`/system/modules/${name}.js`, m);
                     } catch (err) {
                         error(`[DESKTOP] Unable to find module under name '${name}': ${err.message}`);
                         return null;
                     }
                 }
-                return m;
+                return eval("(async() => { " + m + " })()");
             };
 
             Object.freeze(loadModule);
 
             win.module = loadModule
 
-            const Rotur = Object.freeze({
-                openLogin: async() => {
-                    return new Promise( async(resolve, reject) => {
-                        try {
-                            await new Promise(r => setTimeout(r, 1000));
-                            const result = await new Promise(async(resolve, reject) => {
-                                const win = window.open(`https://rotur.dev/auth?styles=https://origin.mistium.com/Resources/auth.css&return_to=${window.location.origin}/Prism/authSuccess`, "_blank");
-                                if (!win) {
-                                    consoleerror("[ROTUR] Login window doesn't exist!");
-                                    reject("Fail");
-                                }
-                                const interval = setInterval(() => {
-                                    if (win.closed) {
-                                        console.error("[ROTUR] Login window closed!");
-                                        clearInterval(interval);
-                                        reject("Fail");
-                                    }
-                                }, 200)
-                                const listener = ev => {
-                                    if (ev.origin !== "https://rotur.dev") return;
-
-                                    if (ev.data.type === "rotur-auth-token") {
-                                        document.removeEventListener("message", listener);
-                                        clearInterval(interval);
-                                        const token = ev.data.token;
-
-                                        win.close();
-                                        resolve(token);
-                                    }
-                                };
-                                window.addEventListener("message", listener)
-                                
-                            });
-                            if (result === "Fail") {
-                                reject("Fail");
-                                return;
-                            }
-                            resolve(result);
-                            return;
-                        } catch (error) {
-                            console.error("[ROTUR] Login error:", error);
-                            reject(error);
-                        }
-
-                })
-                }
-            });
-
-            win.Rotur = Rotur
             log("[DESKTOP] System APIs injected");
-        };
-
+        
         
         log("[DESKTOP] Application appened to desktop");
         makeDraggableWindow(appWindow, drag)
