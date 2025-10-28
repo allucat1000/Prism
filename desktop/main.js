@@ -575,7 +575,7 @@
 
         let res;
         try {
-            res = await fetch("/desktop/img/wallpapers/list.json");
+            res = await fetch(window.location.path + "desktop/img/wallpapers/list.json");
         } catch {
             error("[DESKTOP] Failed to fetch wallpapers!");
             crash("Failed to fetch wallpapers list");
@@ -622,7 +622,7 @@
     if (!dockScript || DEBUG) {
         let res;
         try {
-            res = await fetch("/desktop/js/dock.js");
+            res = await fetch(window.location.path + "desktop/js/dock.js");
         } catch {
             error("[DESKTOP] Failed to fetch dock, might not exist on this build?");
         }
@@ -634,7 +634,7 @@
     if ((!dockCss && dockScript) || DEBUG) {
         let res;
         try {
-            res = await fetch("/desktop/css/dock.css");
+            res = await fetch(window.location.path + "desktop/css/dock.css");
         } catch {
             error("[DESKTOP] Failed to fetch dock CSS.");
         }
@@ -657,7 +657,7 @@
     if (!searchScript || DEBUG) {
         let res;
         try {
-            res = await fetch("/desktop/js/search.js");
+            res = await fetch(window.location.path + "desktop/js/search.js");
         } catch {
             error("[DESKTOP] Failed to fetch search, might not exist on this build?");
         }
@@ -669,7 +669,7 @@
     if ((!searchCss && searchScript) || DEBUG) {
         let res;
         try {
-            res = await fetch("/desktop/css/search.css");
+            res = await fetch(window.location.path + "desktop/css/search.css");
         } catch {
             error("[DESKTOP] Failed to fetch search CSS.");
         }
@@ -692,7 +692,7 @@
     if (!appCss || DEBUG) {
         let res;
         try {
-            res = await fetch("/desktop/css/defaultapp.css");
+            res = await fetch(window.location.path + "desktop/css/defaultapp.css");
         } catch {
             error("[DESKTOP] Failed to fetch default app CSS.");
         }
@@ -707,7 +707,7 @@
     if (!appList || DEBUG) {
         let res;
         try {
-            res = await fetch("/desktop/app/list.json");
+            res = await fetch(window.location.path + "desktop/app/list.json");
         } catch {
             error("[DESKTOP] Failed to fetch default app list!");
         }
