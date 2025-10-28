@@ -250,7 +250,7 @@
                 }
             });
 
-            win.rotur = Rotur
+            win.Rotur = Rotur
             log("[DESKTOP] System APIs injected");
         };
 
