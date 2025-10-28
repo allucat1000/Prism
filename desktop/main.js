@@ -243,10 +243,10 @@
             }
         }
         const Topbar = Object.freeze({
-            add: (name, pos) => {
+            add: (name, pos, data) => {
                 switch (name) {
                     case "Close":{
-                        const closeButton = document.createElement("button");
+                        const closeButton = appWindow.querySelector("closeButton") || document.createElement("button");
                         closeButton.classList.add("closeButton");
                         closeButton.style = "position: absolute; background-color: transparent; width: 32px; height: 32px; border-style: none; color: white; font-size: large; z-index: 99; margin: 0.5em; cursor: pointer;";
                         closeButton.onclick = () => killProc(id);
@@ -254,6 +254,14 @@
                         closeButton.style.left = parsePos(pos[0]);
                         closeButton.style.top = parsePos(pos[1]);
                         appWindow.append(closeButton)
+                        break;
+                    }
+                    case "title":{
+                        const title = appWindow.querySelector("windowTitle") || document.createElement("p");
+                        title.textContent = data;
+                        title.classList.add("windowTitle");
+                        title.style = "margin: 0.5em;";
+                        drag.append(title);
                         break;
                     }
                     default:
