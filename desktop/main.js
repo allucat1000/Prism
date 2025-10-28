@@ -7,21 +7,22 @@
     const logs = [];
 
     function log(...data) {
-        console.log(...data);
+        console.log(`[DESKTOP] ${data}`);
         logs.push({ type: "log", content: data });
     }
 
     function warn(...data) {
-        console.warn(...data);
+        console.warn(`[DESKTOP] ${data}`);
         logs.push({ type: "warn", content: data });
     }
 
     function error(...data) {
-        console.error(...data);
+        console.error(`[DESKTOP] ${data}`);
         logs.push({ type: "error", content: data });
+        return null;
     }
 
-    log("[DESKTOP] Creating main UI");
+    log("Creating main UI");
 
     function setAttrs(element, attrs) {
         for (const [key, value] of Object.entries(attrs)) {
@@ -47,14 +48,14 @@
     let processList = {};
 
     async function execApp(path) {
-        log(`[DESKTOP] Request to execute application at path '${path}'`);
+        log(`Request to execute application at path '${path}'`);
         const compressedApp = await getFile(path);
         if (!compressedApp) {
-            log(`[DESKTOP] Unable to find application at path '${path}'`);
+            log(`Unable to find application at path '${path}'`);
             return;
         }
         const appFiles = await JSZip.loadAsync(compressedApp);
-        log(`[DESKTOP] Uncompressed application, attempting to create app window.`);
+        log(`Uncompressed application, attempting to create app window.`);
         const appWindow = createAppWindow(path, appFiles.files);
     }
 
@@ -82,16 +83,16 @@
         if (Object.keys(files).includes("manifest.json")) {
             const i = Object.keys(files).indexOf("manifest.json");
             manifest = await (Object.values(files)[i]).async("text");
-            log("[DESKTOP] Found manifest.json.");
+            log("Found manifest.json.");
             globalID = JSON.parse(manifest).id;
             
             if (!globalID) {
-                error("[DESKTOP] Unable to find globalID in manifest.json. Application execution cancelled.");
+                error("Unable to find globalID in manifest.json. Application execution cancelled.");
                 execApp("/home/applications/malformedapp.app");
                 return;
             }
         } else {
-            error("[DESKTOP] Unable to find manifest.json. Application execution cancelled.");
+            error("Unable to find manifest.json. Application execution cancelled.");
             execApp("/home/applications/malformedapp.app");
             return;
         }
@@ -99,9 +100,9 @@
         if (Object.keys(files).includes("index.html")) {
             const i = Object.keys(files).indexOf("index.html");
             indexHTML = await (Object.values(files)[i]).async("text");
-            log("[DESKTOP] Found index.html.");
+            log("Found index.html.");
         } else {
-            warn("[DESKTOP] Unable to find index.html, fallback to empty.");
+            warn("Unable to find index.html, fallback to empty.");
             indexHTML = `
 `
         }
@@ -109,9 +110,9 @@
         if (Object.keys(files).includes("main.js")) {
             const i = Object.keys(files).indexOf("main.js");
             mainScript = await (Object.values(files)[i]).async("text");
-            log("[DESKTOP] Found main.js.");
+            log("Found main.js.");
         } else {
-            warn("[DESKTOP] Unable to find main.js, fallback to empty.");
+            warn("Unable to find main.js, fallback to empty.");
             mainScript = "";
         }
 
@@ -148,7 +149,7 @@
     </body>
 </html>
         `;
-        log("[DESKTOP] Application srcdoc set");
+        log("Application srcdoc set");
         desktop.append(appWindow);
         const id = crypto.randomUUID()
         const win = app.contentWindow;
@@ -163,7 +164,7 @@
                     get() { return null; }
                 });
             } catch (e) {
-                warn(`[DESKTOP] Could not override ${name}:`, e);
+                warn(`Could not override ${name}:`, e);
             }
         });
 
@@ -207,7 +208,7 @@
                     
                     const existsFile = await exists(fullPath);
                     if (!existsFile) {
-                        console.warn(`[DESKTOP] ApplicationStorage: File not found: ${fullPath}`);
+                        console.warn(`ApplicationStorage: File not found: ${fullPath}`);
                         return null;
                     }
 
@@ -230,11 +231,11 @@
             if (!m || DEBUG) {
                 try {
                     const res = await fetch(`desktop/modules/${name}.js`);
-                    if (!res.ok) throw new Error("[DESKTOP] Module fetch failed");
+                    if (!res.ok) throw new Error("Module fetch failed");
                     m = await res.text();
                     await writeFile(`/system/modules/${name}.js`, m);
                 } catch (err) {
-                    error(`[DESKTOP] Unable to find module under name '${name}': ${err.message}`);
+                    error(`Unable to find module under name '${name}': ${err.message}`);
                     return null;
                 }
             }
@@ -275,20 +276,48 @@
                         drag.append(title);
                         break;
                     }
+                    case "TextButton":{
+                        const text = document.createElement("p");
+                        const id = parseFloat(data.id);
+                        console.log(data);
+                        const callback = data.callback;
+                        const textcontent = data.text;
+                        if (!id) {
+                            return error("Topbar: Element ID required!");
+                        }
+                        if (!textcontent) {
+                            return error("Topbar: Text content required!");;
+                        }
+                        if (!callback) {
+                            return error("Topbar: Callback required!");
+                        }
+                        text.classList.add(`topbar${id}`);
+                        text.textContent = textcontent;
+                        text.addEventListener("click", callback);
+                        text.style = "margin: 0.9em 1em; color: white; position: absolute; z-index: 999; cursor: pointer;";
+                        text.style.left = parsePos(pos[0]);
+                        drag.append(text);
+                        break;
+                    }
                     default:
-                        warn(`[DESKTOP] Topbar: Unknown element to add '${name}'`);
+                        warn(`Topbar: Unknown element to add '${name}'`);
                         break;
                 }
+            },
+
+            del: (id) => {
+                const el = appWindow.querySelector(`.topbar${id}`);
+                if (el) el.remove(); else warn(`Topbar: Element not found '${id}'`);
             }
         })
 
         win.Topbar = Topbar;
 
-        log("[DESKTOP] System APIs injected");
+        log("System APIs injected");
         
-        log("[DESKTOP] Application appened to desktop");
+        log("Application appened to desktop");
         makeDraggableWindow(appWindow, drag)
-        log("[DESKTOP] Window dragging hooked to window");
+        log("Window dragging hooked to window");
         await new Promise((r) => setTimeout(r, 50));
         appWindow.classList.add("windowLoaded");
         processList[id] = { element: appWindow, path, globalID }
@@ -297,10 +326,10 @@
 
     async function killProc(id) {
         if (!processList[id]) {
-            warn(`[DESKTOP] Unable to find process with id '${id}'`);
+            warn(`Unable to find process with id '${id}'`);
             return;
         }
-        log(`[DESKTOP] Killed process with id '${id}'`)
+        log(`Killed process with id '${id}'`)
         processList[id].element.remove();
         delete processList[id];
     }
@@ -380,7 +409,7 @@
 
         const allowed = await checkperms(parent, permissions);
         if (!allowed) {
-            log(`[DESKTOP] Permission denied: cannot create directory in '${parent}'`);
+            log(`Permission denied: cannot create directory in '${parent}'`);
             return;
         }
 
@@ -410,7 +439,7 @@
 
         const allowed = await checkperms(path, permissions);
         if (!allowed) {
-            log(`[DESKTOP] Permission denied: cannot write '${path}'`);
+            log(`Permission denied: cannot write '${path}'`);
             return;
         }
 
@@ -443,13 +472,13 @@
     async function getFile(path, permissions = ["user"]) {
         const file = await rawGetFile(path);
         if (!file || file.type !== "file") {
-            log(`[DESKTOP] File not found '${path}'`);
+            log(`File not found '${path}'`);
             return;
         }
 
         const allowed = await checkperms(path, permissions);
         if (!allowed) {
-            log(`[DESKTOP] Permission denied to read '${path}'`);
+            log(`Permission denied to read '${path}'`);
             return;
         }
 
@@ -459,13 +488,13 @@
     async function getFileData(path, permissions = ["user"]) {
         const file = await rawGetFile(path);
         if (!file || file.type !== "file") {
-            log(`[DESKTOP] File not found '${path}'`);
+            log(`File not found '${path}'`);
             return;
         }
 
         const allowed = await checkperms(path, permissions);
         if (!allowed) {
-            log(`[DESKTOP] Permission denied to read '${path}'`);
+            log(`Permission denied to read '${path}'`);
             return;
         }
 
@@ -475,13 +504,13 @@
     async function listDir(path, permissions = ["user"]) {
         const dir = await rawGetFile(path);
         if (!dir || dir.type !== "dir") {
-            log(`[DESKTOP] Directory not found '${path}'`);
+            log(`Directory not found '${path}'`);
             return;
         }
 
         const allowed = await checkperms(path, permissions);
         if (!allowed) {
-            log(`[DESKTOP] Permission denied to list '${path}'`);
+            log(`Permission denied to list '${path}'`);
             return;
         }
 
@@ -494,7 +523,7 @@
 
         const allowed = await checkperms(path, permissions);
         if (!allowed) {
-            log(`[DESKTOP] Permission denied to delete '${path}'`);
+            log(`Permission denied to delete '${path}'`);
             return;
         }
 
@@ -585,12 +614,12 @@
     let styles = await getFile("/system/desktop.css");
     if (styles) styles = styles.content;
     if (!styles || DEBUG) {
-        log("[DESKTOP] No desktop styles found, might be init boot.");
+        log("No desktop styles found, might be init boot.");
         let res;
         try {
             res = await fetch("./desktop/css/desktop.css");
         } catch (e) {
-            error("[DESKTOP] Failed to get desktop CSS, system halted.");
+            error("Failed to get desktop CSS, system halted.");
             crash(e);
             return;
         }
@@ -610,7 +639,7 @@
         try {
             res = await fetch("desktop/img/wallpapers/list.json");
         } catch {
-            error("[DESKTOP] Failed to fetch wallpapers!");
+            error("Failed to fetch wallpapers!");
             crash("Failed to fetch wallpapers list");
             return;
         }
@@ -619,7 +648,7 @@
         try {
             list = JSON.parse(await res.text());
         } catch {
-            error("[DESKTOP] Invalid wallpaper list!");
+            error("Invalid wallpaper list!");
             crash("Invalid wallpaper list");
             return;
         }
@@ -630,7 +659,7 @@
                 const data = await imgRes.arrayBuffer();
                 await writeFile(`/home/wallpapers/${wlp}`, data);
             } catch {
-                error(`[DESKTOP] Failed to fetch wallpaper: ${wlp}`);
+                error(`Failed to fetch wallpaper: ${wlp}`);
                 crash(`Failed to fetch wallpaper '${wlp}'`);
                 return;
             }
@@ -648,7 +677,7 @@
         src: wallpaperUrl,
     });
     desktop.append(wallpaperEl);
-    log("[DESKTOP] Wallpaper initialized.");
+    log("Wallpaper initialized.");
 
     let dockScript = await getFile("/system/dock.js");
     let dockCss = await getFile("/system/dock.css");
@@ -657,7 +686,7 @@
         try {
             res = await fetch("desktop/js/dock.js");
         } catch {
-            error("[DESKTOP] Failed to fetch dock, might not exist on this build?");
+            error("Failed to fetch dock, might not exist on this build?");
         }
         if (res) {
             dockScript = await res.text();
@@ -669,7 +698,7 @@
         try {
             res = await fetch("desktop/css/dock.css");
         } catch {
-            error("[DESKTOP] Failed to fetch dock CSS.");
+            error("Failed to fetch dock CSS.");
         }
         if (res) {
             dockCss = await res.text();
@@ -683,7 +712,7 @@
     }
     if (dockScript) {
         eval(dockScript);
-        log("[DESKTOP] Dock initialized.");
+        log("Dock initialized.");
     }
     let searchScript = await getFile("/system/search.js");
     let searchCss = await getFile("/system/search.css");
@@ -692,7 +721,7 @@
         try {
             res = await fetch("desktop/js/search.js");
         } catch {
-            error("[DESKTOP] Failed to fetch search, might not exist on this build?");
+            error("Failed to fetch search, might not exist on this build?");
         }
         if (res) {
             searchScript = await res.text();
@@ -704,7 +733,7 @@
         try {
             res = await fetch("desktop/css/search.css");
         } catch {
-            error("[DESKTOP] Failed to fetch search CSS.");
+            error("Failed to fetch search CSS.");
         }
         if (res) {
             searchCss = await res.text();
@@ -718,7 +747,7 @@
     }
     if (searchScript) {
         eval(searchScript);
-        log("[DESKTOP] Search initialized.");
+        log("Search initialized.");
     }
 
     let appCss = await getFile("/system/appstyles.css");
@@ -727,12 +756,12 @@
         try {
             res = await fetch("desktop/css/defaultapp.css");
         } catch {
-            error("[DESKTOP] Failed to fetch default app CSS.");
+            error("Failed to fetch default app CSS.");
         }
         if (res) {
             appCss = await res.text();
             await writeFile("/system/appstyles.css", appCss);
-            log("[DESKTOP] App styles created");
+            log("App styles created");
         }
     }
 
@@ -742,7 +771,7 @@
         try {
             res = await fetch("desktop/app/list.json");
         } catch {
-            error("[DESKTOP] Failed to fetch default app list!");
+            error("Failed to fetch default app list!");
         }
         if (res) {
             appList = await res.text();
@@ -751,7 +780,7 @@
                 try {
                     appList = JSON.parse(appList)
                 } catch {
-                    log("[DESKTOP] Failed to parse default app list as JSON.");
+                    log("Failed to parse default app list as JSON.");
                     appList = null;
                 }
                 if (appList) {
@@ -760,7 +789,7 @@
                         try {
                             res = await fetch(`desktop/app/${app}`);
                         } catch {
-                            warn(`[DESKTOP] Failed to install app '${app}'.`);
+                            warn(`Failed to install app '${app}'.`);
                         }
                         if (res) {
                             const compressedApp = await res.arrayBuffer()
@@ -768,14 +797,14 @@
                             const files = appFiles.files;
                             const i = Object.keys(files).indexOf("manifest.json");
                             if (i == -1) {
-                                error("[DESKTOP] Malformed application, skipped.")
+                                error("Malformed application, skipped.")
                                 continue;
                             }
                             let manifest = await (Object.values(files)[i]).async("text");
                             try {
                                 manifest = JSON.parse(manifest);
                             } catch {
-                                error("[DESKTOP] Malformed application, skipped.");
+                                error("Malformed application, skipped.");
                                 continue;
                             }
                             let extraParams = {}
@@ -785,11 +814,11 @@
                             await writeFile(`/home/applications/${app}`, compressedApp, ["user"], extraParams);
                         }
                     }
-                    log("[DESKTOP] Default apps installed.")
+                    log("Default apps installed.")
                 }
             }
         }
     }
     
-    log("[DESKTOP] Desktop initialized successfully.");
+    log("Desktop initialized successfully.");
 })();
