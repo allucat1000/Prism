@@ -71,11 +71,13 @@
         window.addEventListener("keydown", (e) => {
             if (e.code == "AltLeft") {
                 drag.style.height = "100%";
+                drag.style.backgroundColor = "rgba(0, 0, 0, 0)";
             }
         })
         window.addEventListener("keyup", (e) => {
             if (e.code == "AltLeft") {
                 drag.style.height = "";
+                drag.style.backgroundColor = "";
             }
         })
         let manifest;
