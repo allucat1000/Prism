@@ -47,7 +47,8 @@
 
 .internalWindow {
     width: 100%;
-    height: calc(100%);
+    margin-top: 3em;
+    height: calc(100% - 3em);
     border-style: none;
 }
 
