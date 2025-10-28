@@ -68,7 +68,6 @@
         appWindow.append(drag)
         appWindow.append(app);
         window.addEventListener("keydown", (e) => {
-            console.log(e.code)
             if (e.code == "AltLeft") {
                 drag.style.height = "100%";
             }
