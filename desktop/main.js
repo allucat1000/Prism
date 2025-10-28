@@ -67,6 +67,17 @@
         app.classList.add("internalWindow");
         appWindow.append(drag)
         appWindow.append(app);
+        window.addEventListener("keydown", (e) => {
+            console.log(e.code)
+            if (e.code == "AltLeft") {
+                drag.style.height = "100%";
+            }
+        })
+        window.addEventListener("keyup", (e) => {
+            if (e.code == "AltLeft") {
+                drag.style.height = "";
+            }
+        })
         let manifest;
         let globalID;
         if (Object.keys(files).includes("manifest.json")) {
@@ -256,7 +267,7 @@
                         appWindow.append(closeButton)
                         break;
                     }
-                    case "title":{
+                    case "Title":{
                         const title = appWindow.querySelector("windowTitle") || document.createElement("p");
                         title.textContent = data;
                         title.classList.add("windowTitle");
