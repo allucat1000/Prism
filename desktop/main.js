@@ -789,6 +789,21 @@
         }
     }
 
+    let fileProcs = await getFile("/system/fileProcesses.json");
+    if (!appCss || DEBUG) {
+        let res;
+        try {
+            res = await fetch("desktop/misc/fileProcesses.json");
+        } catch {
+            error("Failed to fetch file processes file.");
+        }
+        if (res) {
+            fileProcs = await res.text();
+            await writeFile("/system/fileProcesses.json", fileProcs);
+            log("FileProcesses list created");
+        }
+    }
+
     let appList = await getFile("/system/applist.json");
     if (!appList || DEBUG) {
         let res;

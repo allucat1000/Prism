@@ -1,4 +1,5 @@
 [
     "malformedapp.app",
-    "sideloader.app"
+    "sideloader.app",
+    "FileManager.app"
 ]
