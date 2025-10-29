@@ -831,6 +831,11 @@
         }
     }
 
+    let hostname = await getFile("/system/hostname.conf");
+    if (!hostname) {
+        await writeFile("/system/hostname.conf", "prism");
+    }
+
     let appList = await getFile("/system/applist.json");
     if (!appList || DEBUG) {
         let res;
