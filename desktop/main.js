@@ -139,6 +139,10 @@
             for (const [key, value] of Object.entries(attrs)) {
                 if (key === "class") {
                     element.classList.add(...value.split(" "));
+                } else if (key === "src") {
+                    const color = "white";
+                    const updated = value.replace("currentColor", color);
+                    element[key] = updated;
                 } else if (key in element) {
                     element[key] = value;
                 } else {
@@ -189,7 +193,7 @@
                 await makeDir(path, ["user"], metadata);
             },
             lsDir: async (path) => {
-                await listDir(path);
+                return await listDir(path);
             }
         });
 
@@ -206,7 +210,8 @@
 
             storage: {
                 read: async (path) => {
-                    const fullPath = `/system/applicationstorage/${id}${path}`;
+                    const safePath = path.startsWith("/") ? path : "/" + path;
+                    const fullPath = `/system/applicationstorage/${globalID}${safePath}`;
                     
                     const existsFile = await exists(fullPath);
                     if (!existsFile) {
@@ -219,7 +224,8 @@
                 },
 
                 write: async (path, content) => {
-                    const fullPath = `/system/applicationstorage/${id}${path}`;
+                    const safePath = path.startsWith("/") ? path : "/" + path;
+                    const fullPath = `/system/applicationstorage/${globalID}${safePath}`;
 
                     await writeFile(fullPath, content, ["user"]);
                 }
@@ -270,7 +276,7 @@
                         break;
                     }
                     case "Title":{
-                        const title = appWindow.querySelector("windowTitle") || document.createElement("p");
+                        const title = appWindow.querySelector(".windowTitle") || document.createElement("p");
                         title.textContent = data;
                         title.classList.add("windowTitle");
                         title.style = "margin: 0.9em 1em; color: white; position: absolute;";
@@ -295,6 +301,23 @@
                         text.classList.add(`topbar${id}`);
                         text.textContent = textcontent;
                         text.addEventListener("click", callback);
+                        text.style = "margin: 0.9em 1em; color: white; position: absolute; z-index: 999; cursor: pointer;";
+                        text.style.left = parsePos(pos[0]);
+                        drag.append(text);
+                        break;
+                    }
+                    case "Text":{
+                        const text = document.createElement("p");
+                        const id = parseFloat(data.id);
+                        const textcontent = data.text;
+                        if (!id) {
+                            return error("Topbar: Element ID required!");
+                        }
+                        if (!textcontent) {
+                            return error("Topbar: Text content required!");;
+                        }
+                        text.classList.add(`topbar${id}`);
+                        text.textContent = textcontent;
                         text.style = "margin: 0.9em 1em; color: white; position: absolute; z-index: 999; cursor: pointer;";
                         text.style.left = parsePos(pos[0]);
                         drag.append(text);
@@ -488,7 +511,7 @@
 
     async function getFileData(path, permissions = ["user"]) {
         const file = await rawGetFile(path);
-        if (!file || file.type !== "file") {
+        if (!file) {
             log(`File not found '${path}'`);
             return;
         }
