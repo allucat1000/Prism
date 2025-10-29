@@ -242,8 +242,8 @@
                     if (!res.ok) throw new Error("Module fetch failed");
                     m = await res.text();
                     await writeFile(`/system/modules/${name}.js`, m);
-                } catch (err) {
-                    error(`Unable to find module under name '${name}': ${err.message}`);
+                } catch {
+                    error(`Unable to find module under name '${name}'`);
                     return null;
                 }
             }
@@ -253,6 +253,19 @@
         Object.freeze(loadModule);
 
         win.module = loadModule
+
+        const loadFile = async (name) => {
+            if (!Object.keys(files).includes(name)) {
+                warn(`Unable to find file under name '${name}'`)
+            }
+            const i = Object.keys(files).indexOf(name);
+            file = await (Object.values(files)[i]).async("text");
+            return file;
+        }
+
+        Object.freeze(loadFile);
+
+        win.load = loadFile;
 
         function parsePos(pos) {
             if (typeof pos === "number") {
@@ -264,6 +277,11 @@
         const Topbar = Object.freeze({
             add: (name, pos, data) => {
                 switch (name) {
+                    case "Topbar":{
+                        app.style.marginTop = "3em";
+                        app.style.height = "calc(100% - 3em)";
+                        break;
+                    }
                     case "Close":{
                         const closeButton = appWindow.querySelector("closeButton") || document.createElement("button");
                         closeButton.classList.add("closeButton");
@@ -316,6 +334,10 @@
                         if (!textcontent) {
                             return error("Topbar: Text content required!");;
                         }
+                        const old = appWindow.querySelector(`.topbar${id}`);
+                        if (old) {
+                            return error("Topbar: You cannot have multiple elements with the same ID in one window!");
+                        }
                         text.classList.add(`topbar${id}`);
                         text.textContent = textcontent;
                         text.style = "margin: 0.9em 1em; color: white; position: absolute; z-index: 999; cursor: pointer;";
@@ -330,6 +352,11 @@
             },
 
             del: (id) => {
+                if (id == "Topbar") {
+                    app.style.marginTop = "0";
+                    app.style.height = "100%";
+                    return;
+                }
                 const el = appWindow.querySelector(`.topbar${id}`);
                 if (el) el.remove(); else warn(`Topbar: Element not found '${id}'`);
             }

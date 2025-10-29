@@ -2,6 +2,8 @@
 import JSZip from "https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm";
 // End
 
+await navigator.storage.persist()
+
 const DB_NAME = "Prism";
 const STORE_NAME = "FileSystem";
 
@@ -17,7 +19,7 @@ async function init() {
             throw new Error("[SYS] Premature crash, unable to get main function!");
         }
         bootFunction = await res.text();
-        await rawSetFile("/", { content: ["/system"], created: Date.now(), modified: Date.now(), permissions: ["user"], type: "dir"})
+        await rawSetFile("/", { content: ["/system", "/home"], created: Date.now(), modified: Date.now(), permissions: ["user"], type: "dir"})
         await rawSetFile("/system/main.js", { content: bootFunction, created: Date.now(), modified: Date.now(), permissions: ["administrator"], type: "file"});
     };
     eval(bootFunction);
