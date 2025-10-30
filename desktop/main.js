@@ -24,6 +24,8 @@
 
     log("Creating main UI");
 
+    const bootTime = Date.now();
+
     function setAttrs(element, attrs) {
         for (const [key, value] of Object.entries(attrs)) {
             if (key === "class") {
@@ -174,6 +176,20 @@
             }
         });
 
+        async function getStorageUsage() {
+            if (!navigator.storage?.estimate) {
+                throw new Error("StorageManager API not supported");
+            }
+
+            const estimate = await navigator.storage.estimate();
+
+            return {
+                used: estimate.usage,
+                total: estimate.quota,
+                free: estimate.quota - estimate.usage
+            };
+        }
+
         const FS = Object.freeze({
             writeFile: async (path, content, metadata = {}) => {
                 await writeFile(path, content, ["user"], metadata);
@@ -194,10 +210,19 @@
             },
             lsDir: async (path) => {
                 return await listDir(path);
+            },
+            getStats: async() => {
+                return await getStorageUsage()
             }
         });
 
         win.FileSystem = FS;
+
+        const System = Object.freeze({
+            bootTime: bootTime
+        });
+
+        win.System = System;
 
         const App = Object.freeze({
             execApp: async(path) => {
