@@ -672,6 +672,8 @@
             }
         }
 
+        delete index[path]
+
         await rawDeleteFile(path);
 
         const parent = dirname(path);
