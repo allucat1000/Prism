@@ -12,11 +12,11 @@ app.whenReady().then(() => {
         width: 1200,
         height: 800,
         webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        preload: path.join(__dirname, 'preload.js'),
-        webviewTag: true,
-        sandbox: true
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js'),
+            webviewTag: true,
+            sandbox: true
         }
     });
 

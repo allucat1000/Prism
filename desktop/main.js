@@ -3,7 +3,7 @@
 
     let index;
 
-    const isElectron = !!(typeof process !== "undefined" && process.versions && process.versions.electron);
+    const isElectron = !!window.ElectronAPI?.electron;
 
     // Logging system
     const logs = [];

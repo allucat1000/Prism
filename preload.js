@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('ElectronAPI', {
-    onAuthToken: (callback) => ipcRenderer.on('auth-token', (_, token) => callback(token))
+    onAuthToken: (callback) => ipcRenderer.on('auth-token', (_, token) => callback(token)),
+    electron: true
 });
