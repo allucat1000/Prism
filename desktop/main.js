@@ -3,6 +3,8 @@
 
     let index;
 
+    const isElectron = !!(typeof process !== "undefined" && process.versions && process.versions.electron);
+
     // Logging system
     const logs = [];
 
@@ -219,7 +221,9 @@
         win.FileSystem = FS;
 
         const System = Object.freeze({
-            bootTime: bootTime
+            bootTime: bootTime,
+
+            electron: isElectron
         });
 
         win.System = System;
