@@ -178,6 +178,61 @@
             }
         });
 
+        const Rotur = Object.freeze({
+            login: async () => {
+                await new Promise(r => setTimeout(r, 1000));
+
+                return new Promise((resolve, reject) => {
+                    let url = `https://rotur.dev/auth?styles=https://origin.mistium.com/Resources/auth.css&return_to=${window.location.origin}/Prism/authSuccess`
+                    if (window.ElectronAPI) {
+                        url = `https://rotur.dev/auth?styles=https://origin.mistium.com/Resources/auth.css&return_to=https://allucat1000.github.io/Prism/authSuccess`;
+                    }
+                const win = window.open(
+                    url,
+                    "_blank"
+                );
+
+                if (window.ElectronAPI) {
+                    window.ElectronAPI.onAuthToken((token) => {
+                        resolve(token);
+                    });
+                    setTimeout(() => reject("Fail"), 90000)
+                } else {
+
+                    if (!win) {
+                        console.error("[ROTUR] Login window doesn't exist!");
+                        return reject("Fail");
+                    }
+
+                    const interval = setInterval(() => {
+                        if (win.closed) {
+                        console.error("[ROTUR] Login window closed!");
+                        clearInterval(interval);
+                        window.removeEventListener("message", listener);
+                        reject("Fail");
+                        }
+                    }, 200);
+
+                    const listener = ev => {
+                        if (ev.origin !== "https://rotur.dev") return;
+
+                        if (ev.data.type === "rotur-auth-token") {
+                        window.removeEventListener("message", listener);
+                        clearInterval(interval);
+                        const token = ev.data.token;
+                        win.close();
+                        resolve(token);
+                        }
+                    };
+
+                    window.addEventListener("message", listener);
+                }
+                });
+            }
+        })
+
+        win.Rotur = Rotur;
+
         async function getStorageUsage() {
             if (!navigator.storage?.estimate) {
                 throw new Error("StorageManager API not supported");
@@ -258,6 +313,10 @@
 
                     await writeFile(fullPath, content, ["user"]);
                 }
+            },
+
+            electron: {
+
             }
         });
 
