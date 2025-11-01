@@ -442,6 +442,25 @@
                 }
             },
 
+            set: (name, params) => {
+                switch (name) {
+                    case "Topbar":
+                        if (typeof params !== "object") {
+                            warn(`Topbar: Invalid Topbar set param data`);
+                            return;
+                        }
+                        if (params.x)
+                        drag.style.left = parsePos(params.x);
+                        if (params.w)
+                        drag.style.width = parsePos(params.w);
+                        break;
+                
+                    default:
+                        warn(`Topbar: Unknown element to set '${name}'`);
+                        break;
+                }
+            },
+
             del: (id) => {
                 if (id == "Topbar") {
                     app.style.marginTop = "0";
