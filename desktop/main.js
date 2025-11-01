@@ -128,8 +128,10 @@
 
         const blob = new Blob([mainScript], { type: "text/javascript" });
 
-        let safeIndex = indexHTML.replace("`","\\`");
-        safeIndex = safeIndex.replace("${","\\$");
+        let safeIndex = indexHTML.replace("\\","\\\\")
+        safeIndex = safeIndex.replace("`","\`");
+        safeIndex = safeIndex.replace("${","\${");
+        console.log(safeIndex);
         app.srcdoc = `
 <html
     <head>
@@ -160,6 +162,7 @@
 </html>
         `;
         log("Application srcdoc set");
+        appWindow.style.zIndex = appZIndex += 10;
         desktop.append(appWindow);
         const id = crypto.randomUUID()
         const win = app.contentWindow;
