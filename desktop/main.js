@@ -1,5 +1,6 @@
 (async () => {
-    const DEBUG = true;
+    const params = new URLSearchParams(window.location.search);
+    const DEBUG = params.get("debug") == "true" ? true : false;
 
     let index;
 
@@ -782,7 +783,6 @@
     desktop.append(title, installStep);
 
     let styles = await getFile("/system/desktop.css");
-    if (styles) styles = styles.content;
     if (!styles || DEBUG) {
         installStep.textContent = "Installing styles";
         log("No desktop styles found, might be init boot.");
