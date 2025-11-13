@@ -841,17 +841,25 @@
             return;
         }
 
-        for (const wlp of list) {
-            try {
-                installStep.textContent = `Installing wallpaper: ${wlp}...`;
+        try {
+            let completed = 0;
+            const total = list.length;
+            installStep.textContent = `Installing wallpapers: 0/${total}...`;
+
+            const tasks = list.map(async (wlp) => {
                 const imgRes = await fetch(`desktop/img/wallpapers/${wlp}`);
+                if (!imgRes.ok) throw new Error(`Failed to fetch wallpaper: ${wlp}`);
                 const data = await imgRes.arrayBuffer();
                 await writeFile(`/home/wallpapers/${wlp}`, data);
-            } catch {
-                error(`Failed to fetch wallpaper: ${wlp}`);
-                crash(`Failed to fetch wallpaper '${wlp}'`);
-                return;
-            }
+                completed++;
+                installStep.textContent = `Installing wallpapers: ${completed}/${total}...`;
+            });
+
+            await Promise.all(tasks);
+        } catch (e) {
+            error(e.message || "Failed to install wallpapers");
+            crash(e.message || "Wallpaper installation failed");
+            return;
         }
 
         wallpapers = list;
