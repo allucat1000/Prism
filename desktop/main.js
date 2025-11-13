@@ -549,7 +549,14 @@
         const message = document.createElement("h1");
         setAttrs(message, {
             class: "crashError",
-            textContent: `System Crash: ${reason}`
+            textContent: `System Crash: ${reason}`,
+            style: `
+                color: white;
+                margin: 0.5em;
+                font-weight: 100;
+                font-family: sans-serif;
+                font-size: 1.5em;
+            `
         });
 
         overlay.append(message);
@@ -775,16 +782,25 @@
 
     // Desktop init
 
-    const title = document.createElement("p");
-    title.textContent = "Prism";
-    title.style = "text-align: center; margin: 3em; color: white; font-size: 4em; font-weight: 200; font-family: 'Poppins', sans-serif;";
     const installStep = document.createElement("p");
-    installStep.style = "text-align: center; margin: 2em; color: white; font-size: 1.5em; font-family: 'Poppins', sans-serif; font-weight: 100;";
-    desktop.append(title, installStep);
+    installStep.textContent = "Loading system..."
+    installStep.style = "text-align: center; position: absolute; bottom: 15em; left: 50%; transform: translateX(-50%); color: white; font-size: 1.75em; font-family: 'Poppins', sans-serif; font-weight: 100; opacity: 1; transition: opacity 0.5s;";
+    const loadingSpinner = document.createElement("img");
+    loadingSpinner.src = "./desktop/img/loadingSpinner.svg";
+    loadingSpinner.style = `
+    left: 50%;
+    width: 6em;
+    position: absolute;
+    transform: translateX(-50%);
+    bottom: 10em;
+    opacity: 1;
+    transition: opacity 0.5s;`
+    desktop.append(loadingSpinner);
 
     let styles = await getFile("/system/desktop.css");
     if (!styles || DEBUG) {
-        installStep.textContent = "Installing styles";
+        installStep.textContent = "Installing styles...";
+        desktop.prepend(installStep);
         log("No desktop styles found, might be init boot.");
         let res;
         try {
@@ -805,7 +821,7 @@
     let wallpapers = await listDir("/home/wallpapers");
     if (!wallpapers || wallpapers.length === 0) {
         await makeDir("/home/wallpapers");
-        installStep.textContent = "Installing wallpapers";
+        installStep.textContent = "Installing wallpapers...";
 
         let res;
         try {
@@ -827,7 +843,7 @@
 
         for (const wlp of list) {
             try {
-                installStep.textContent = `Installing wallpaper: ${wlp}`;
+                installStep.textContent = `Installing wallpaper: ${wlp}...`;
                 const imgRes = await fetch(`desktop/img/wallpapers/${wlp}`);
                 const data = await imgRes.arrayBuffer();
                 await writeFile(`/home/wallpapers/${wlp}`, data);
@@ -847,6 +863,7 @@
     const wallpaperUrl = URL.createObjectURL(wallpaperBlob);
     setAttrs(wallpaperEl, {
         id: "wallpaper",
+        style: `opacity: 0; transition: opacity 0.5s`,
         src: wallpaperUrl,
     });
     log("Wallpaper initialized.");
@@ -854,7 +871,7 @@
     let dockScript = await getFile("/system/dock.js");
     let dockCss = await getFile("/system/dock.css");
     if (!dockScript || DEBUG) {
-        installStep.textContent = `Installing dock`;
+        installStep.textContent = `Installing dock...`;
         let res;
         try {
             res = await fetch("desktop/js/dock.js");
@@ -868,7 +885,7 @@
     }
     if ((!dockCss && dockScript) || DEBUG) {
         let res;
-        installStep.textContent = `Installing dock CSS`;
+        installStep.textContent = `Installing dock CSS...`;
         try {
             res = await fetch("desktop/css/dock.css");
         } catch {
@@ -887,7 +904,7 @@
     let searchScript = await getFile("/system/search.js");
     let searchCss = await getFile("/system/search.css");
     if (!searchScript || DEBUG) {
-        installStep.textContent = `Installing search`;
+        installStep.textContent = `Installing search...`;
         let res;
         try {
             res = await fetch("desktop/js/search.js");
@@ -901,7 +918,7 @@
     }
     if ((!searchCss && searchScript) || DEBUG) {
         let res;
-        installStep.textContent = `Installing search CSS`;
+        installStep.textContent = `Installing search CSS...`;
         try {
             res = await fetch("desktop/css/search.css");
         } catch {
@@ -920,7 +937,7 @@
 
     let appCss = await getFile("/system/appstyles.css");
     if (!appCss || DEBUG) {
-        installStep.textContent = `Installing app CSS`;
+        installStep.textContent = `Installing app CSS...`;
         let res;
         try {
             res = await fetch("desktop/css/defaultapp.css");
@@ -936,7 +953,7 @@
 
     let fileProcs = await getFile("/system/fileProcesses.json");
     if (!appCss || DEBUG) {
-        installStep.textContent = `Installing default file processes`;
+        installStep.textContent = `Installing default file processes...`;
         let res;
         try {
             res = await fetch("desktop/misc/fileProcesses.json");
@@ -957,7 +974,7 @@
 
     let appList = await getFile("/system/applist.json");
     if (!appList || DEBUG) {
-        installStep.textContent = `Installing default apps`;
+        installStep.textContent = `Installing default apps...`;
         let res;
         try {
             res = await fetch("desktop/app/list.json");
@@ -977,7 +994,7 @@
                 if (appList) {
                     for (const app of appList) {
                         let res;
-                        installStep.textContent = `Installing app: ${app}`;
+                        installStep.textContent = `Installing app: ${app}...`;
                         try {
                             res = await fetch(`desktop/app/${app}`);
                         } catch {
@@ -1012,9 +1029,6 @@
         }
     }
 
-    title.remove();
-    installStep.remove();
-
     desktop.append(wallpaperEl);
 
     if (searchScript) {
@@ -1028,4 +1042,11 @@
     }
     
     log("Desktop initialized successfully.");
+    await new Promise((r) => setTimeout(r, 50));
+    loadingSpinner.style.opacity = "0";
+    installStep.style.opacity = "0";
+    wallpaperEl.style.opacity = "1";
+    await new Promise((r) => setTimeout(r, 500));
+    loadingSpinner.remove();
+    installStep.remove();
 })();
