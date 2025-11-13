@@ -2,5 +2,6 @@
     "malformedapp.app",
     "sideloader.app",
     "FileManager.app",
-    "Terminal.app"
+    "Terminal.app",
+    "HuopaProxy.app"
 ]
