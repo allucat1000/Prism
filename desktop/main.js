@@ -819,7 +819,7 @@
     document.head.append(styleEl);
 
     let wallpapers = await listDir("/home/wallpapers");
-    if (!wallpapers || wallpapers.length === 0) {
+    if (!wallpapers || wallpapers.length === 0 || DEBUG) {
         await makeDir("/home/wallpapers");
         installStep.textContent = "Installing wallpapers...";
 
